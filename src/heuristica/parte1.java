@@ -188,7 +188,6 @@ public class parte1
 		}
 		
 		// Solver
-		
 		Search<BooleanVar> search = new DepthFirstSearch<BooleanVar>();
 		SelectChoicePoint<BooleanVar> select = new SimpleSelect<BooleanVar>(allVariables,new SmallestDomain<BooleanVar>(), new IndomainMin<BooleanVar>());
 		Boolean result = search.labeling(store, select);
