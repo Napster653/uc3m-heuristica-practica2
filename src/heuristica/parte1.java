@@ -161,7 +161,7 @@ public class parte1
 					addClause(satWrapper, saleDelanteLiteral[fil][col], saleDetrasLiteral[fil][col]);
 
 					//letraInferiorDelanteLiteral
-					if(parking[fil][col+1].charAt(0) < parking[fil][col].charAt(0))
+					if(parking[fil][col+1].charAt(0) < parking[fil][col].charAt(0)) // Si el coche de delante es de letra menor que el actual, letraInferiorDelante es true
 						addClause(satWrapper, letraInferiorDelanteLiteral[fil][col]);
 					else
 						addClause(satWrapper, -letraInferiorDelanteLiteral[fil][col]);
@@ -173,7 +173,7 @@ public class parte1
 						addClause(satWrapper, -letraInferiorDetrasLiteral[fil][col]);
 					
 					//numerInferiorDelanteLiteral
-					if((parking[fil][col+1].charAt(0) == parking[fil][col].charAt(0)) && (parking[fil][col+1].charAt(1) < parking[fil][col].charAt(1)))
+					if((parking[fil][col+1].charAt(0) == parking[fil][col].charAt(0)) && (parking[fil][col+1].charAt(1) < parking[fil][col].charAt(1))) // Si el coche de delante es de la misma letra y número menor que el actual, numerInfDelante es true
 						addClause(satWrapper, numerInferiorDelanteLiteral[fil][col]);
 					else
 						addClause(satWrapper, -numerInferiorDelanteLiteral[fil][col]);
@@ -186,8 +186,17 @@ public class parte1
 				}
 			}
 		}
+		
+		// Solver
+		
+		Search<BooleanVar> search = new DepthFirstSearch<BooleanVar>();
+		SelectChoicePoint<BooleanVar> select = new SimpleSelect<BooleanVar>(allVariables,new SmallestDomain<BooleanVar>(), new IndomainMin<BooleanVar>());
+		Boolean result = search.labeling(store, select);
+		if(result)
+			System.out.println("SAT");
+		else
+			System.out.println("UNSAT");
 
-		System.out.println(Arrays.deepToString(numerInferiorDetrasLiteral));
 		char[][] resultado = new char[n_filas][n_columnas];
 
 		for (int fil = 0; fil < n_filas; fil++)
