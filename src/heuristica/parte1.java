@@ -201,22 +201,42 @@ public class parte1
 
 		for (int fil = 0; fil < n_filas; fil++)
 		{
-			for (int col = 1; col < n_columnas - 1; col++)
+			for (int col = 0; col < n_columnas; col++)
 			{
-				if (!parking[fil][col].equals("__") && !parking[fil][col-1].equals("__") && !parking[fil][col+1].equals("__"))
+				if (parking[fil][col].equals("__"))
 				{
-					if (saleDelante[fil][col].value() == 0)
-					{
-						resultado[fil][col] = '>';
-					}
-					else if (saleDetras[fil][col].value() == 0)
+					resultado[fil][col] = '-';
+				}
+				else if (col == 0)
+				{
+					resultado[fil][col] = '<';
+				}
+				else if (col == n_columnas - 1)
+				{
+					resultado[fil][col] = '>';
+				}
+				else if (saleDelante[fil][col] == null)
+				{
+					if (parking[fil][col-1].equals("__"))
 					{
 						resultado[fil][col] = '<';
 					}
 					else
 					{
-						resultado[fil][col] = 'X';
+						resultado[fil][col] = '>';
 					}
+				}
+				else if (saleDelante[fil][col].value() == 1)
+				{
+					resultado[fil][col] = '>';
+				}
+				else if (saleDetras[fil][col].value() == 1)
+				{
+					resultado[fil][col] = '<';
+				}
+				else
+				{
+					resultado[fil][col] = 'X';
 				}
 			}
 		}
