@@ -68,14 +68,14 @@ public class parte1
 		{
 			for (int col = 1; col < n_columnas - 1; col++)
 			{
-				if (parking[fil][col] != "__" && parking[fil][col-1] != "__" && parking[fil][col+1] != "__")
+				if (!parking[fil][col].equals("__") && !parking[fil][col-1].equals("__") && !parking[fil][col+1].equals("__"))
 				{
-					saleDelante[fil][col] = new BooleanVar(store, "\n Node saleDelante");
-					saleDetras[fil][col] = new BooleanVar(store, "\n Node saleDetras");
-					letraInferiorDelante[fil][col] = new BooleanVar(store, "\n Node letraInferiorDelante");
-					numerInferiorDelante[fil][col] = new BooleanVar(store, "\n Node numerInferiorDelante");
-					letraInferiorDetras[fil][col] = new BooleanVar(store, "\n Node letraInferiorDetras");
-					numerInferiorDetras[fil][col] = new BooleanVar(store, "\n Node numerInferiorDetras");
+					saleDelante[fil][col] = new BooleanVar(store, "\nsaleDelante");
+					saleDetras[fil][col] = new BooleanVar(store, "\nsaleDetras");
+					letraInferiorDelante[fil][col] = new BooleanVar(store, "\nletraInferiorDelante");
+					numerInferiorDelante[fil][col] = new BooleanVar(store, "\nnumerInferiorDelante");
+					letraInferiorDetras[fil][col] = new BooleanVar(store, "\nletraInferiorDetras");
+					numerInferiorDetras[fil][col] = new BooleanVar(store, "\nnumerInferiorDetras");
 				}
 			}
 		}
@@ -87,7 +87,7 @@ public class parte1
 		{
 			for (int col = 1; col < n_columnas - 1; col++)
 			{
-				if (parking[fil][col] != "__" && parking[fil][col-1] != "__" && parking[fil][col+1] != "__")
+				if (!parking[fil][col].equals("__") && !parking[fil][col-1].equals("__") && !parking[fil][col+1].equals("__"))
 				{
 					satWrapper.register(saleDelante[fil][col]);
 					satWrapper.register(saleDetras[fil][col]);
@@ -99,6 +99,8 @@ public class parte1
 				}
 			}
 		}
+		
+		System.out.println(Arrays.deepToString(saleDelante));
 
 		// Se crea un array en el que se almacenarán las variables sin dejar huecos
 		BooleanVar allVariables[] = new BooleanVar[totalVariables];
@@ -109,7 +111,7 @@ public class parte1
 		{
 			for (int col = 1; col < n_columnas - 1; col++)
 			{
-				if (parking[fil][col] != "__" && parking[fil][col-1] != "__" && parking[fil][col+1] != "__")
+				if (!parking[fil][col].equals("__") && !parking[fil][col-1].equals("__") && !parking[fil][col+1].equals("__"))
 				{
 					allVariables[allVarIndex] = saleDelante[fil][col];
 					allVariables[allVarIndex + 1] = saleDetras[fil][col];
@@ -135,7 +137,7 @@ public class parte1
 		{
 			for (int col = 1; col < n_columnas - 1; col++)
 			{
-				if (parking[fil][col] != "__" && parking[fil][col-1] != "__" && parking[fil][col+1] != "__")
+				if (!parking[fil][col].equals("__") && !parking[fil][col-1].equals("__") && !parking[fil][col+1].equals("__"))
 				{
 					letraInferiorDelanteLiteral[fil][col] = satWrapper.cpVarToBoolVar(letraInferiorDelante[fil][col], 1, true);
 					letraInferiorDetrasLiteral[fil][col] = satWrapper.cpVarToBoolVar(letraInferiorDetras[fil][col], 1, true);
@@ -152,13 +154,13 @@ public class parte1
 		{
 			for (int col = 1; col < n_columnas - 1; col++)
 			{
-				if (parking[fil][col] != "__" && parking[fil][col-1] != "__" && parking[fil][col+1] != "__")
+				if (!parking[fil][col].equals("__") && !parking[fil][col-1].equals("__") && !parking[fil][col+1].equals("__"))
 				{
 					// saleDel ->letraInfDel OR numerInfDel pasado a FNC, lo mismo para Detrás
-					addClause(satWrapper, -saleDelanteLiteral[fil][col], letraInferiorDelanteLiteral[fil][col], numerInferiorDelanteLiteral[fil][col]);
-					addClause(satWrapper, -saleDetrasLiteral[fil][col], letraInferiorDetrasLiteral[fil][col], numerInferiorDetrasLiteral[fil][col]);
+					addClause(satWrapper, -saleDelanteLiteral[fil][col], letraInferiorDelanteLiteral[fil][col], numerInferiorDelanteLiteral[fil][col]);		/* (-saleDel v letraInfDel v numerInfDel) */
+					addClause(satWrapper, -saleDetrasLiteral[fil][col], letraInferiorDetrasLiteral[fil][col], numerInferiorDetrasLiteral[fil][col]);		/* (-saleDet v letraInfDet v numerInfDet) */
 					// Los coches bloqueados deben poder salir por delante OR por detrás
-					addClause(satWrapper, saleDelanteLiteral[fil][col], saleDetrasLiteral[fil][col]);
+					addClause(satWrapper, saleDelanteLiteral[fil][col], saleDetrasLiteral[fil][col]);														/* (saleDel v saleDet) */
 
 					//letraInferiorDelanteLiteral
 					if(parking[fil][col+1].charAt(0) < parking[fil][col].charAt(0)) // Si el coche de delante es de letra menor que el actual, letraInferiorDelante es true
@@ -186,11 +188,12 @@ public class parte1
 				}
 			}
 		}
-		
+
 		// Solver
 		Search<BooleanVar> search = new DepthFirstSearch<BooleanVar>();
-		SelectChoicePoint<BooleanVar> select = new SimpleSelect<BooleanVar>(allVariables,new SmallestDomain<BooleanVar>(), new IndomainMin<BooleanVar>());
+		SelectChoicePoint<BooleanVar> select = new SimpleSelect<BooleanVar>(allVariables, new SmallestDomain<BooleanVar>(), new IndomainMin<BooleanVar>());
 		Boolean result = search.labeling(store, select);
+
 		if(result)
 			System.out.println("SAT");
 		else
@@ -202,7 +205,7 @@ public class parte1
 		{
 			for (int col = 1; col < n_columnas - 1; col++)
 			{
-				if (parking[fil][col] != "__" && col != n_columnas && col != 0 && parking[fil][col-1] != "__" && parking[fil][col+1] != "__")
+				if (!parking[fil][col].equals("__") && !parking[fil][col-1].equals("__") && !parking[fil][col+1].equals("__"))
 				{
 					if (saleDelante[fil][col].value() == 0)
 					{
@@ -223,7 +226,6 @@ public class parte1
 				}
 			}
 		}
-		System.out.println(Arrays.deepToString(resultado));
 	}
 
 	public static void addClause(SatWrapper satWrapper, int literal1)
