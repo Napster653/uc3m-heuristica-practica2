@@ -99,8 +99,6 @@ public class parte1
 				}
 			}
 		}
-		
-		System.out.println(Arrays.deepToString(saleDelante));
 
 		// Se crea un array en el que se almacenarán las variables sin dejar huecos
 		BooleanVar allVariables[] = new BooleanVar[totalVariables];
@@ -220,12 +218,11 @@ public class parte1
 						resultado[fil][col] = 'X';
 					}
 				}
-				else
-				{
-					resultado[fil][col] = '_';
-				}
 			}
 		}
+
+		System.out.println(Arrays.deepToString(resultado));
+
 	}
 
 	public static void addClause(SatWrapper satWrapper, int literal1)
