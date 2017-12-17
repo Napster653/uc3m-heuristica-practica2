@@ -6,7 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import org.jacop.core.BooleanVar;
 import org.jacop.core.Store;
@@ -18,6 +17,7 @@ import org.jacop.search.Search;
 import org.jacop.search.SelectChoicePoint;
 import org.jacop.search.SimpleSelect;
 import org.jacop.search.SmallestDomain;
+
 public class parte1
 {
 	public static void main(String[] args) throws IOException
@@ -187,62 +187,91 @@ public class parte1
 			}
 		}
 
+		Boolean result;
 		// Solver
-		Search<BooleanVar> search = new DepthFirstSearch<BooleanVar>();
-		SelectChoicePoint<BooleanVar> select = new SimpleSelect<BooleanVar>(allVariables, new SmallestDomain<BooleanVar>(), new IndomainMin<BooleanVar>());
-		Boolean result = search.labeling(store, select);
+		if (allVariables.length != 0)
+		{
+			Search<BooleanVar> search = new DepthFirstSearch<BooleanVar>();
+			SelectChoicePoint<BooleanVar> select = new SimpleSelect<BooleanVar>(allVariables, new SmallestDomain<BooleanVar>(), new IndomainMin<BooleanVar>());
+			result = search.labeling(store, select);
+		}
+		else
+		{
+			result = true;
+		}
 
 		if(result)
-			System.out.println("SAT");
-		else
-			System.out.println("UNSAT");
-
-		char[][] resultado = new char[n_filas][n_columnas];
-
-		for (int fil = 0; fil < n_filas; fil++)
 		{
-			for (int col = 0; col < n_columnas; col++)
+			System.out.println("Problema satisfacible");
+			
+			char[][] resultado = new char[n_filas][n_columnas];
+
+			for (int fil = 0; fil < n_filas; fil++)
 			{
-				if (parking[fil][col].equals("__"))
+				for (int col = 0; col < n_columnas; col++)
 				{
-					resultado[fil][col] = '-';
-				}
-				else if (col == 0)
-				{
-					resultado[fil][col] = '<';
-				}
-				else if (col == n_columnas - 1)
-				{
-					resultado[fil][col] = '>';
-				}
-				else if (saleDelante[fil][col] == null)
-				{
-					if (parking[fil][col-1].equals("__"))
+					if (parking[fil][col].equals("__"))
+					{
+						resultado[fil][col] = '_';
+					}
+					else if (col == 0)
+					{
+						resultado[fil][col] = '<';
+					}
+					else if (col == n_columnas - 1)
+					{
+						resultado[fil][col] = '>';
+					}
+					else if (saleDelante[fil][col] == null)
+					{
+						if (parking[fil][col+1].equals("__"))
+						{
+							resultado[fil][col] = '>';
+						}
+						else
+						{
+							resultado[fil][col] = '<';
+						}
+					}
+					else if (saleDelante[fil][col].value() == 1)
+					{
+						resultado[fil][col] = '>';
+					}
+					else if (saleDetras[fil][col].value() == 1)
 					{
 						resultado[fil][col] = '<';
 					}
 					else
 					{
-						resultado[fil][col] = '>';
+						resultado[fil][col] = 'X';
 					}
 				}
-				else if (saleDelante[fil][col].value() == 1)
-				{
-					resultado[fil][col] = '>';
-				}
-				else if (saleDetras[fil][col].value() == 1)
-				{
-					resultado[fil][col] = '<';
-				}
-				else
-				{
-					resultado[fil][col] = 'X';
-				}
 			}
+
+			System.out.println(Arrays.deepToString(resultado));
+
+			String salida = args[0].substring(0, args[0].length()-5);
+			salida = salida.concat("output");
+			System.out.println(salida);
+
+			BufferedWriter bw = new BufferedWriter(new FileWriter(salida));
+
+			for (int fil = 0; fil < resultado.length; fil++)
+			{
+				for (int col = 0; col < resultado[fil].length; col++)
+				{
+					bw.write(resultado[fil][col] + ((col == resultado[fil].length-1) ? "" : " "));
+				}
+				bw.newLine();
+			}
+
+			bw.flush();
+			bw.close();
 		}
-
-		System.out.println(Arrays.deepToString(resultado));
-
+		else
+		{
+			System.out.println("Problema insatisfacible");
+		}
 	}
 
 	public static void addClause(SatWrapper satWrapper, int literal1)
