@@ -53,26 +53,39 @@ public class AstarParking
 			}
 		}
 		buffer2.close();
-		
-		System.out.println(Arrays.deepToString(parking_init));
-		System.out.println(Arrays.deepToString(parking_goal));
 
 		Node initNode = new Node(parking_init);
 		initNode.setG(0);
+		initNode.updateCars();
 		Node goalNode = new Node(parking_goal);
 		goalNode.setH(0);
+		goalNode.updateCars();
 
 		ArrayList <Node> openSet = new ArrayList <Node>();
 		openSet.add(initNode);
 		ArrayList <Node> closedSet = new ArrayList <Node>();
 		boolean success = false;
+		
+		int steps = 0;
 		while (!openSet.isEmpty() && !success)
 		{
-			Node current = openSet.remove(0);	// Remove first node from OPEN
+			steps++;
+			System.out.println("Step: " + steps);
+			int lowest_f = openSet.get(0).getF();
+			int lowest_f_position = 0;
+			for (int index = 0; index < openSet.size(); index++)
+			{
+				if (openSet.get(index).getF() < lowest_f)
+				{
+					lowest_f_position = index;
+				}
+			}
+			Node current = openSet.remove(lowest_f_position);	// Remove first node from OPEN
 			closedSet.add(current);				// Put it inside CLOSED
 			if (current.sameParking(goalNode))		// If aux == goal, success, exit loop
 			{
 				success = true;
+				reconstructPath(current);
 			}
 			else	// If aux != goal
 			{
@@ -85,10 +98,12 @@ public class AstarParking
 				{
 					if (containsNode(closedSet, expanded.get(i)) != -1)	// If child in closedSet
 					{
+						System.out.println("Child in closedSet, "+containsNode(closedSet,expanded.get(i)));
 						continue;	// Ignore the child
 					}
 					if (containsNode(openSet, expanded.get(i)) == -1)	// If child not in openSet
 					{
+						System.out.println("Child not in openSet");
 						openSet.add(expanded.get(i));	// Add it to openSet
 					}
 					int tentative_g = current.getG() + expanded.get(i).getLastCost();	// Possibly better g value
@@ -101,6 +116,15 @@ public class AstarParking
 				}
 			}
 		}
+		if (success)
+		{
+			System.out.println("Success");
+			System.out.println(steps + " Steps");
+		}
+		else
+		{
+			System.out.println("Failure");
+		}
 		
 		/* Open = {I}, Closed = {}, Success = false
 		
@@ -112,66 +136,210 @@ public class AstarParking
 		*/
 	}
 
+	private static void reconstructPath(Node current)
+	{
+		while (current.getFather() != null)
+		{
+			for (int fil = 0; fil < current.getParking().length; fil++)
+			{
+				for (int col = 0; col < current.getParking()[fil].length; col++)
+				{
+					System.out.print(current.getParking()[fil][col].getId() + ((col == current.getParking()[fil].length - 1) ? "" : " "));
+				}
+				System.out.println();
+			}
+			System.out.println();
+			current = current.getFather();
+		}
+		for (int fil = 0; fil < current.getParking().length; fil++)
+		{
+			for (int col = 0; col < current.getParking()[fil].length; col++)
+			{
+				System.out.print(current.getParking()[fil][col].getId() + ((col == current.getParking()[fil].length - 1) ? "" : " "));
+			}
+			System.out.println();
+		}
+		
+	}
+
 	private static ArrayList<Node> expand(Node current)
 	{
 		Car [][] currentParking = current.getParking();
+		int n_filas = current.getParking().length;
+		int n_columnas = current.getParking()[0].length;
 		ArrayList <Node> expanded = new ArrayList <Node>();
-		ArrayList <Car> movableCars = new ArrayList <Car>();
 		for (int fil = 0; fil < currentParking.length; fil++)
 		{
 			for (int col = 0; col < currentParking[fil].length; col++)
 			{
-				if (!currentParking[fil][col].getId().equals("__"))
+				if (!currentParking[fil][col].getId().equals("__") && currentParking[fil][col].isLast()) // Para cada coche que sea el último (puede salir por detrás)
 				{
-					if (currentParking[fil][col].isFirst() || currentParking[fil][col].isLast())
+					for (int fil_ite = 0; fil_ite < currentParking.length; fil_ite++)
 					{
-						for (int fil_ite = 0; fil_ite < currentParking.length; fil_ite++)
+						if (currentParking[fil_ite][currentParking[fil_ite].length - 1].getId().equals("__")) // Filas en las que se puede entrar marcha atrás
 						{
-							for (int col_ite = currentParking[fil].length - 1; currentParking[fil_ite][col_ite].getId().equals("__"); col_ite--)
+							int ind = getIndexFromFront(currentParking[fil_ite]);
+							
+							Car [][] expParking = new Car [n_filas][n_columnas];
+							for (int i = 0; i < n_filas; i++)
 							{
-								Car [][] expParking = currentParking;
-								expParking[fil_ite][col_ite].setId(expParking[fil][col].getId());
-								expParking[fil][col].setId("__");
-								Node exp = new Node (expParking, current);
-								exp.updateCars();
-								exp.setLastCost(4);
-								int tmp = containsNode(expanded, exp);
-								if (tmp == -1)
+								for (int j = 0; j < n_columnas; j++)
 								{
-									expanded.add(exp);
-								}
-								else
-								{
-									expanded.add(tmp, exp);
+									Car c = currentParking[i][j];
+									if (c != null)
+									{
+										expParking[i][j] = new Car (c);
+									}
 								}
 							}
-							for (int col_ite = 0; currentParking[fil_ite][col_ite].getId().equals("__"); col_ite++)
+							String newValue = expParking[fil][col].getId();
+							expParking[fil_ite][ind].setId(newValue);
+							expParking[fil][col].setId("__");
+							
+							Node exp = new Node (expParking, current);
+							exp.updateCars();
+							exp.setLastCost(6); // 2 + 4
+							int tmp = containsNode(expanded, exp);
+							if (tmp == -1)
 							{
-								Car [][] expParking = currentParking;
-								expParking[fil_ite][col_ite].setId(expParking[fil][col].getId());
-								expParking[fil][col].setId("__");
-								Node exp = new Node (expParking, current);
-								exp.updateCars();
-								exp.setLastCost(3);
-								int tmp = containsNode(expanded, exp);
-								if (tmp == -1)
+								expanded.add(exp);
+							}
+							else
+							{
+								expanded.add(tmp, exp);
+							}
+						}
+						if (currentParking[fil_ite][0].getId().equals("__")) // Filas en las que se puede entrar marcha alante
+						{
+							int ind = getIndexFromBack(currentParking[fil_ite]);
+							
+							Car [][] expParking = new Car [n_filas][n_columnas];
+							for (int i = 0; i < n_filas; i++)
+							{
+								for (int j = 0; j < n_columnas; j++)
 								{
-									expanded.add(exp);
+									Car c = currentParking[i][j];
+									if (c != null)
+									{
+										expParking[i][j] = new Car (c);
+									}
 								}
-								else
-								{
-									expanded.add(tmp, exp);
-								}
+							}
+							expParking[fil_ite][ind].setId(expParking[fil][col].getId());
+							expParking[fil][col].setId("__");
+							
+							Node exp = new Node (expParking, current);
+							exp.updateCars();
+							exp.setLastCost(5); // 2 + 3
+							int tmp = containsNode(expanded, exp);
+							if (tmp == -1)
+							{
+								expanded.add(exp);
+							}
+							else
+							{
+								expanded.add(tmp, exp);
 							}
 						}
 					}
-					if (currentParking[fil][col].isLast())
+				}
+				if (!currentParking[fil][col].getId().equals("__") && currentParking[fil][col].isFirst()) // Para cada coche que sea el primero (puede salir por delante)
+				{
+					for (int fil_ite = 0; fil_ite < currentParking.length; fil_ite++)
 					{
-						
+						if (currentParking[fil_ite][currentParking[fil_ite].length - 1].getId().equals("__")) // Filas en las que puede entrar marcha atrás
+						{
+							int ind = getIndexFromFront(currentParking[fil_ite]);
+							
+							Car [][] expParking = new Car [n_filas][n_columnas];
+							for (int i = 0; i < n_filas; i++)
+							{
+								for (int j = 0; j < n_columnas; j++)
+								{
+									Car c = currentParking[i][j];
+									if (c != null)
+									{
+										expParking[i][j] = new Car (c);
+									}
+								}
+							}
+							expParking[fil_ite][ind].setId(expParking[fil][col].getId());
+							expParking[fil][col].setId("__");
+							
+							Node exp = new Node (expParking, current);
+							exp.updateCars();
+							exp.setLastCost(5); // 1 + 4
+							int tmp = containsNode(expanded, exp);
+							if (tmp == -1)
+							{
+								expanded.add(exp);
+							}
+							else
+							{
+								expanded.add(tmp, exp);
+							}
+						}
+						if (currentParking[fil_ite][0].getId().equals("__")) // Filas en las que puede entrar marcha alante
+						{
+							int ind = getIndexFromBack(currentParking[fil_ite]);
+							
+							Car [][] expParking = new Car [n_filas][n_columnas];
+							for (int i = 0; i < n_filas; i++)
+							{
+								for (int j = 0; j < n_columnas; j++)
+								{
+									Car c = currentParking[i][j];
+									if (c != null)
+									{
+										expParking[i][j] = new Car (c);
+									}
+								}
+							}
+							expParking[fil_ite][ind].setId(expParking[fil][col].getId());
+							expParking[fil][col].setId("__");
+							
+							Node exp = new Node (expParking, current);
+							exp.updateCars();
+							exp.setLastCost(4); // 1 + 3
+							int tmp = containsNode(expanded, exp);
+							if (tmp == -1)
+							{
+								expanded.add(exp);
+							}
+							else
+							{
+								expanded.add(tmp, exp);
+							}
+						}
 					}
 				}
 			}
 		}
+		return expanded;
+	}
+
+	private static int getIndexFromFront(Car[] currentRow)
+	{
+		for (int ind = currentRow.length - 1; ind >= 0; ind--)
+		{
+			if (!currentRow[ind].getId().equals("__"))
+			{
+				return (ind+1);
+			}
+		}
+		return -1;
+	}
+
+	private static int getIndexFromBack(Car[] currentRow)
+	{
+		for (int ind = 0; ind < currentRow.length; ind++)
+		{
+			if (!currentRow[ind].getId().equals("__"))
+			{
+				return (ind-1);
+			}
+		}
+		return -1;
 	}
 
 	private static int containsNode(ArrayList <Node> set, Node node)

@@ -4,7 +4,10 @@ public class Node
 {
 	Node father = null;
 	Car [][] parking = null;
-	int g, h, f, lastCost;
+	int g;
+	int h = 1;
+	int f;
+	int lastCost;
 	
 	// Constructors
 	public Node (Car [][] parking)
@@ -17,6 +20,7 @@ public class Node
 	{
 		this.parking = parking;
 		this.father = node;
+		updateCars();
 	}
 	
 	// Father
@@ -100,65 +104,18 @@ public class Node
 		{
 			for (int col = 0; col < this.parking[fil].length; col++)
 			{
-				if (col == 0)
+				if (!this.parking[fil][col].getId().equals("__"))
 				{
 					this.parking[fil][col].setLast(true);
+					break;
 				}
-				else
-				{
-					for (int iter = 0; iter < col; iter++)
-					{
-						if (!this.parking[fil][iter].getId().equals("__"))
-						{
-							this.parking[fil][col].setLast(false);
-							break;
-						}
-					}
-				}
-				if (col == this.parking[fil].length -1)
+			}
+			for (int col = this.parking[fil].length - 1; col >= 0; col--)
+			{
+				if (!this.parking[fil][col].getId().equals("__"))
 				{
 					this.parking[fil][col].setFirst(true);
-				}
-				else
-				{
-					for (int iter = col + 1; iter < this.parking[fil].length; iter++)
-					{
-						if (!this.parking[fil][iter].getId().equals("__"))
-						{
-							this.parking[fil][col].setFirst(false);
-							break;
-						}
-					}
-				}
-				if (col == 0)
-				{
-					this.parking[fil][col].setCanMoveBack(false);
-				}
-				else
-				{
-					if (this.parking[fil][col - 1].getId().equals("__"))
-					{
-						this.parking[fil][col].setCanMoveBack(true);
-					}
-					else
-					{
-						this.parking[fil][col].setCanMoveBack(false);
-					}
-				}
-				if (col == this.parking[fil].length - 1)
-				{
-					this.parking[fil][col].setCanMoveFront(false);
-				}
-				else
-				{
-					if (this.parking[fil][col + 1].getId().equals("__"))
-					{
-						this.parking[fil][col].setCanMoveFront(true);
-					}
-					else
-					{
-						this.parking[fil][col].setCanMoveFront(false);
-					}
+					break;
 				}
 			}
 		}
