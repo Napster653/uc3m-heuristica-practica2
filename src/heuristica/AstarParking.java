@@ -123,7 +123,7 @@ public class AstarParking
 			{
 				if (!currentParking[fil][col].getId().equals("__"))
 				{
-					if (currentParking[fil][col].isFirst())
+					if (currentParking[fil][col].isFirst() || currentParking[fil][col].isLast())
 					{
 						for (int fil_ite = 0; fil_ite < currentParking.length; fil_ite++)
 						{
@@ -134,18 +134,40 @@ public class AstarParking
 								expParking[fil][col].setId("__");
 								Node exp = new Node (expParking, current);
 								exp.updateCars();
-								int tmp = expanded.containsNode(exp);
+								exp.setLastCost(4);
+								int tmp = containsNode(expanded, exp);
 								if (tmp == -1)
 								{
-									expanded.add(current);
+									expanded.add(exp);
 								}
 								else
 								{
-									
-									expanded.add(index, element);
+									expanded.add(tmp, exp);
+								}
+							}
+							for (int col_ite = 0; currentParking[fil_ite][col_ite].getId().equals("__"); col_ite++)
+							{
+								Car [][] expParking = currentParking;
+								expParking[fil_ite][col_ite].setId(expParking[fil][col].getId());
+								expParking[fil][col].setId("__");
+								Node exp = new Node (expParking, current);
+								exp.updateCars();
+								exp.setLastCost(3);
+								int tmp = containsNode(expanded, exp);
+								if (tmp == -1)
+								{
+									expanded.add(exp);
+								}
+								else
+								{
+									expanded.add(tmp, exp);
 								}
 							}
 						}
+					}
+					if (currentParking[fil][col].isLast())
+					{
+						
 					}
 				}
 			}
